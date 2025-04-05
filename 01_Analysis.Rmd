@@ -1,0 +1,83 @@
+---
+title: "Analysis"
+output:
+  html_document:
+    df_print: paged
+---
+
+##### ISSP, Social Inequality, Cumulation (1987, 1992, 1999, 2009 & 2019)
+
+The data are worked up in the article: 
+
+Breznau, Nate, Lisa Heukamp, Hung HV Nguyen, and Tom Knuf. 2024. “The Moderating Role of Government Heuristics in Public Preferences for Redistribution.” Journal of European Social Policy 09589287241290742. doi: 10.1177/09589287241290742.
+
+This was forked from https://github.com/hungnguyen167/Social-Status
+
+```{r , include=FALSE}
+library(pacman)
+pacman::p_load("tidyverse", 
+               "jtools",
+               "lme4",
+               "report")
+
+knitr::opts_chunk$set(message = F, warning = F)
+
+```
+
+
+```{r }
+
+df_na <- readRDS(here::here("data", "df_na.RDS"))
+#df_macro <- readRDS(here::here("data", "df_macro.RDS"))
+
+```
+
+### Within and Between
+
+Setup a dataset that defines within- and between-variables
+
+```{r }
+
+df_na <- df_na %>%
+  group_by(iso3c) %>%
+  mutate(govreduce_b = mean(gov_redist, na.rm = T), # gov should reduce diffs
+         govreduce_w = gov_redist - govreduce_b,
+         incdiff_b = mean(incdiff, na.rm = T), # differences in income too large
+         incdiff_w = incdiff - incdiff_b,
+         gini_disp_b = mean(gini_disp, na.rm = T), # Solt
+         gini_disp_w = gini_disp - gini_disp_b,
+         gov_corrupt_percept = cpi_ii, #Corruption Perceptions Index
+         gov_no_confidence = noconf_govZ_i) %>% # WVS confidence in gov
+  ungroup()
+
+```
+
+
+## Regressions
+
+This interacts perceptions of corruption with the within-country (over time) gini (m1) and the confidence in government variable from the World Values Survey aggregated by country-year (m2)
+
+```{r}
+
+m1 <- lmer(govreduce_w ~ gini_disp_w*gov_corrupt_percept + (1 | iso3c), data = df_na)
+
+m2 <- lmer(govreduce_w ~ gini_disp_w*gov_no_confidence + (1 | iso3c), data = df_na)
+
+export_summs(m1, m2)
+
+```
+
+
+
+## References
+
+```{r cite}
+report::cite_packages()
+```
+
+
+## Colophon
+
+```{r colophon}
+sessionInfo()
+```
