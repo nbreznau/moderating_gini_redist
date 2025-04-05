@@ -30,6 +30,8 @@ knitr::opts_chunk$set(message = F, warning = F)
 df_na <- readRDS(here::here("data", "df_na.RDS"))
 #df_macro <- readRDS(here::here("data", "df_macro.RDS"))
 
+
+
 ```
 
 ### Within and Between
